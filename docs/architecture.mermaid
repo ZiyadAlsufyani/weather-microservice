@@ -1,0 +1,13 @@
+graph TD
+    A[Developer] -->|Push Code| B[GitHub Repository]
+    B -->|Trigger| C[GitHub Actions]
+    C -->|Run| D[CI Pipeline]
+    D -->|Lint| E[ESLint]
+    D -->|Test| F[Jest]
+    D -->|Scan| G[CodeQL & Trivy]
+    D -->|On Success| H[CD Pipeline]
+    H -->|Deploy to| I[Vercel Development]
+    I -->|Promote to| J[Vercel Production]
+    K[User] -->|Request| J
+    J -->|Serve| L[Weather Microservice API]
+    M[Docker] -->|Containerize| L

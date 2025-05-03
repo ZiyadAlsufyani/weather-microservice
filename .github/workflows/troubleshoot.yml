@@ -1,0 +1,67 @@
+name: Troubleshoot Dependencies
+
+on:
+  workflow_dispatch:
+    inputs:
+      debug-mode:
+        description: 'Enable verbose debugging'
+        required: false
+        default: 'false'
+        
+jobs:
+  troubleshoot:
+    name: Troubleshoot Dependencies
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          
+      - name: Environment Information
+        run: |
+          echo "Node version: $(node -v)"
+          echo "NPM version: $(npm -v)"
+          echo "Operating system: $(uname -a)"
+          echo "Free disk space: $(df -h)"
+          echo "Free memory: $(free -h)"
+          
+      - name: Verify package.json
+        run: |
+          echo "Checking package.json format..."
+          cat package.json | jq
+          
+      - name: Verify package-lock.json
+        run: |
+          if [ -f "package-lock.json" ]; then
+            echo "package-lock.json exists"
+            echo "Checking package-lock.json format..."
+            cat package-lock.json | jq 'keys'
+          else
+            echo "package-lock.json does not exist"
+          fi
+          
+      - name: Clean npm cache
+        run: npm cache clean --force
+        
+      - name: Install dependencies with verbose logging
+        if: ${{ github.event.inputs.debug-mode == 'true' }}
+        run: npm ci --verbose
+        continue-on-error: true
+        
+      - name: Install dependencies normally
+        if: ${{ github.event.inputs.debug-mode != 'true' }}
+        run: |
+          npm ci --prefer-offline --no-audit --progress=false --fund=false
+        env:
+          NODE_OPTIONS: "--max_old_space_size=4096"
+        continue-on-error: true
+        
+      - name: Check for missing dependencies
+        run: |
+          echo "Checking for missing dependencies in node_modules..."
+          node -e "const pkg = require('./package.json'); const fs = require('fs'); const deps = {...pkg.dependencies, ...pkg.devDependencies}; const missing = []; for (const dep in deps) { try { fs.statSync('./node_modules/' + dep); } catch (e) { missing.push(dep); } } console.log('Missing dependencies:', missing.length ? missing : 'None');"

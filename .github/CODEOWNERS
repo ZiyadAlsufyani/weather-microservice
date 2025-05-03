@@ -1,0 +1,11 @@
+# These owners will be the default owners for everything in the repo
+* @team-lead
+
+# CI/CD pipeline files
+.github/workflows/ @ci-cd-engineer
+
+# API code
+app/api/ @developer
+
+# Testing files
+__tests__/ @qa-analyst

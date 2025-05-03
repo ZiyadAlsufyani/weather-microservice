@@ -1,0 +1,43 @@
+name: Dependency Check
+
+on:
+  schedule:
+    - cron: '0 0 * * 1'  # Run weekly on Mondays
+  workflow_dispatch:  # Allow manual triggering
+
+jobs:
+  dependency-check:
+    name: Check Dependencies
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          
+      - name: Install npm-check-updates
+        run: npm install -g npm-check-updates
+        
+      - name: Check for outdated dependencies
+        run: |
+          ncu > dependency-report.txt
+          cat dependency-report.txt
+          
+      - name: Upload dependency report
+        uses: actions/upload-artifact@v3
+        with:
+          name: dependency-report
+          path: dependency-report.txt
+          
+      - name: Run npm audit
+        run: npm audit --json > audit-report.json || true
+        
+      - name: Upload audit report
+        uses: actions/upload-artifact@v3
+        with:
+          name: audit-report
+          path: audit-report.json
