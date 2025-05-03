@@ -6,6 +6,11 @@ on:
   pull_request:
     branches: [ main ]
 
+permissions:
+  security-events: write
+  actions: read
+  contents: read
+
 jobs:
   lint:
     name: Lint Code
@@ -93,13 +98,15 @@ jobs:
           NODE_OPTIONS: "--max_old_space_size=4096"
         timeout-minutes: 10
           
-      - name: Run CodeQL Analysis
-        uses: github/codeql-action/init@v2
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
         with:
           languages: javascript
           
       - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v2
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:javascript"
         
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@master
