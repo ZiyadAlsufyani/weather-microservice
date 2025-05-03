@@ -46,19 +46,22 @@ jobs:
           
           
   Deploy-Production:
-        runs-on: ubuntu-latest
-        steps:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
 
-            - uses: actions/checkout@v3
+      - name: Restore cached build output
+        uses: actions/cache@v3
+        with:
+          path: .next
+          key: ${{ runner.os }}-nextjs-${{ github.sha }}
 
-            - name: Install Vercel CLI
-              run: npm install --global vercel
+      - name: Install Vercel CLI
+        run: npm install --global vercel
 
-            - name: Pull Vercel Environment Information
-              run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+      - name: Pull Vercel Environment Information
+        run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
 
-            - name: Build Project Artifacts
-              run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
-
-            - name: Deploy Project Artifacts
-              run: vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
+      - name: Deploy Project Artifacts
+        run: vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
