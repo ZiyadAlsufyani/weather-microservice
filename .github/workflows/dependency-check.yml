@@ -28,16 +28,18 @@ jobs:
           cat dependency-report.txt
           
       - name: Upload dependency report
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: dependency-report
           path: dependency-report.txt
+          retention-days: 14
           
       - name: Run npm audit
         run: npm audit --json > audit-report.json || true
         
       - name: Upload audit report
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: audit-report
           path: audit-report.json
+          retention-days: 14
