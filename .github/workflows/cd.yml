@@ -26,24 +26,38 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: '18'
-          cache: 'npm'
+          
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 10
+          run_install: false
+
+      - name: Get pnpm store directory
+        id: pnpm-cache
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path)" >> $GITHUB_OUTPUT
+
+      - name: Setup pnpm cache
+        uses: actions/cache@v3
+        with:
+          path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
           
       - name: Install dependencies
-        run: |
-          npm ci --prefer-offline --no-audit --progress=false --fund=false --legacy-peer-deps
-        env:
-          NODE_OPTIONS: "--max_old_space_size=4096"
-        timeout-minutes: 10
+        run: pnpm install --frozen-lockfile
           
       - name: Build application
-        run: npm run build
+        run: pnpm run build
         
       - name: Cache build output
         uses: actions/cache@v3
         with:
           path: .next
           key: ${{ runner.os }}-nextjs-${{ github.sha }}
-          
           
   Deploy-Production:
     needs: build
@@ -55,22 +69,32 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: '18'
-          cache: 'npm'
 
-      - name: Install dependencies
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 10
+          run_install: false
+
+      - name: Get pnpm store directory
+        id: pnpm-cache
+        shell: bash
         run: |
-          npm ci --prefer-offline --no-audit --progress=false --fund=false --legacy-peer-deps
-        env:
-          NODE_OPTIONS: "--max_old_space_size=4096"
+          echo "STORE_PATH=$(pnpm store path)" >> $GITHUB_OUTPUT
 
-      - name: Restore cached build output
+      - name: Setup pnpm cache
         uses: actions/cache@v3
         with:
-          path: .next
-          key: ${{ runner.os }}-nextjs-${{ github.sha }}
+          path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
 
       - name: Install Vercel CLI
-        run: npm install --global vercel
+        run: pnpm add --global vercel@latest
 
       - name: Pull Vercel Environment Information
         run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
