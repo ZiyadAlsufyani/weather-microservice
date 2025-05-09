@@ -1,13 +1,16 @@
 # Use Node.js LTS version
 FROM node:18-alpine AS base
 
+# Add bash to the image
+RUN apk add --no-cache bash
+
 # Install dependencies only when needed
 FROM base AS deps
 WORKDIR /app
 
 # Copy package files
 COPY package.json package-lock.json* ./
-RUN npm ci
+RUN npm ci --prefer-offline --no-audit --progress=false --fund=false --legacy-peer-deps
 
 # Rebuild the source code only when needed
 FROM base AS builder
