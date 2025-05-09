@@ -1,6 +1,9 @@
 # Use Node.js LTS version
 FROM node:18-alpine AS base
 
+# Add bash to the image
+RUN apk add --no-cache bash
+
 # Install dependencies only when needed
 FROM base AS deps
 WORKDIR /app
