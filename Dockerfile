@@ -10,7 +10,7 @@ WORKDIR /app
 
 # Copy package files
 COPY package.json package-lock.json* ./
-RUN npm ci
+RUN npm ci --prefer-offline --no-audit --progress=false --fund=false --legacy-peer-deps
 
 # Rebuild the source code only when needed
 FROM base AS builder
